@@ -120,7 +120,7 @@ extern int sysctl_nr_trim_pages;
 
 /* Constants used for minimum and  maximum */
 #ifdef CONFIG_LOCKUP_DETECTOR
-static int sixty __read_only = 60
+static int sixty __read_only = 60;
 #endif
 
 static int __maybe_unused neg_one = -1;
@@ -133,7 +133,7 @@ static int __maybe_unused four __read_only = 4;
 static unsigned long one_ul __read_only = 1;
 static int one_hundred __read_only = 100;
 #ifdef CONFIG_PRINTK
-static int one_thousand __read_only = 1000;
+static int ten_thousand __read_only = 10000;
 #endif
 #ifdef CONFIG_SCHED_HMP
 static int one_thousand = 1000;
