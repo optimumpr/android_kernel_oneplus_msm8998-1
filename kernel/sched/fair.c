@@ -8715,6 +8715,14 @@ int can_migrate_task(struct task_struct *p, struct lb_env *env)
 		return 0;
 	}
 
+	/* Dont allow boosted tasks to be pulled to small cores unless
+	 * big cores are overutilized
+	 */
+	if (!env->src_rq->rd->overutilized &&
+		env->flags & LBF_IGNORE_BIG_TASKS &&
+		(schedtune_task_boost(p) > 0))
+		return 0;
+
 	/* Don't detach task if it is under active migration */
 	if (env->src_rq->push_task == p)
 		return 0;
