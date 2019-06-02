@@ -10786,6 +10786,12 @@ static int idle_balance(struct rq *this_rq)
 	if (cpu_isolated(this_cpu))
 		return 0;
 
+	/*
+	 * Do not pull tasks towards !active CPUs...
+	 */
+	if (!cpu_active(this_cpu))
+		return 0;
+
 	idle_enter_fair(this_rq);
 
         /*
