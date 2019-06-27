@@ -646,7 +646,7 @@ static int voice_svc_dummy_dereg(void)
 static int voice_svc_open(struct inode *inode, struct file *file)
 {
 	struct voice_svc_prvt *prtd = NULL;
-
+	int ret = 0;
 
 	pr_debug("%s\n", __func__);
 
@@ -822,7 +822,7 @@ static int voice_svc_probe(struct platform_device *pdev)
 	}
 	pr_debug("%s: Device created\n", __func__);
 	spin_lock_init(&voicesvc_lock);
- 	mutex_init(&session_lock);
+	mutex_init(&session_lock);
 	goto done;
 
 add_err:
@@ -845,7 +845,7 @@ static int voice_svc_remove(struct platform_device *pdev)
 	kfree(voice_svc_dev->cdev);
 	device_destroy(voice_svc_class, device_num);
 	class_destroy(voice_svc_class);
- 	mutex_destroy(&session_lock);
+	mutex_destroy(&session_lock);
 	unregister_chrdev_region(0, MINOR_NUMBER);
 
 	return 0;

@@ -2122,7 +2122,7 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 					pr_err("%s: ASM get param error = %d, resuming\n",
 						__func__, payload[1]);
 					rtac_make_asm_callback(ac->session,
-							payload
+							payload,
 							data->payload_size);
 				}
 			} else {
