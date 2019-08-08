@@ -490,6 +490,38 @@ static long gf_compat_ioctl(struct file *filp, unsigned int cmd, unsigned long a
 }
 #endif /*CONFIG_COMPAT*/
 
+#if defined(CONFIG_FP_PROXIMITY_ENABLE)
+static ssize_t proximity_state_set(struct device *dev,
+	struct device_attribute *attribute, const char *buffer, size_t count)
+{
+	struct gf_dev *gf_dev = dev_get_drvdata(dev);
+	int rc, val;
+
+	rc = kstrtoint(buffer, 10, &val);
+	if (rc)
+		return -EINVAL;
+
+	gf_dev->proximity_state = !!val;
+
+	if (gf_dev->proximity_state) {
+		gf_disable_irq(gf_dev);
+	} else {
+		gf_enable_irq(gf_dev);
+	}
+
+	return count;
+}
+
+static DEVICE_ATTR(proximity_state, S_IWUSR, NULL, proximity_state_set);
+
+static struct attribute *attributes[] = {
+#if defined(CONFIG_FP_PROXIMITY_ENABLE)
+        &dev_attr_proximity_state.attr,
+#endif
+	NULL
+};
+#endif
+
 static irqreturn_t gf_irq(int irq, void *handle)
 {
 #if defined(GF_NETLINK_ENABLE)
@@ -593,34 +625,6 @@ static const struct file_operations gf_fops = {
 #endif
 };
 
-static ssize_t proximity_state_set(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t count)
-{
-	struct gf_dev *gf_dev = dev_get_drvdata(dev);
-	int rc, val;
-
-	rc = kstrtoint(buf, 10, &val);
-	if (rc)
-		return -EINVAL;
-
-	gf_dev->proximity_state = !!val;
-
-	if (gf_dev->proximity_state) {
-		gf_disable_irq(gf_dev);
-	} else {
-		gf_enable_irq(gf_dev);
-	}
-
-	return count;
-}
-
-static DEVICE_ATTR(proximity_state, S_IWUSR, NULL, proximity_state_set);
-
-static struct attribute *attributes[] = {
-	&dev_attr_proximity_state.attr,
-	NULL
-};
-
 static const struct attribute_group attribute_group = {
 	.attrs = attributes,
 };
@@ -634,7 +638,6 @@ static int goodix_fb_state_chg_callback(struct notifier_block *nb,
 	char temp = 0;
 
 	if (val != FB_EARLY_EVENT_BLANK)
-		return 0;
 	pr_info("[info] %s go to the goodix_fb_state_chg_callback value = %d\n",
 			__func__, (int)val);
 	gf_dev = container_of(nb, struct gf_dev, notifier);
@@ -687,7 +690,9 @@ static int gf_probe(struct platform_device *pdev)
 #endif
 {
 	struct gf_dev *gf_dev = &gf;
+#if defined(CONFIG_FP_PROXIMITY_ENABLE)
 	struct device *dev = &pdev->dev;
+#endif
 	int status = -EINVAL;
 	unsigned long minor;
 	int i;
@@ -777,6 +782,11 @@ static int gf_probe(struct platform_device *pdev)
 			goto error_input;
 		}
 	}
+
+#if defined(CONFIG_FP_PROXIMITY_ENABLE)
+	dev_set_drvdata(dev, gf_dev);
+#endif
+
 #ifdef AP_CONTROL_CLK
 	pr_info("Get the clk resource.\n");
 	/* Enable spi clock */

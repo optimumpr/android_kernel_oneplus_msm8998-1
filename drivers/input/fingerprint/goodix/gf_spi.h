@@ -136,7 +136,6 @@ struct gf_dev {
 #ifdef GF_FASYNC
 	struct fasync_struct *async;
 #endif
-	struct notifier_block notifier;
 	char device_available;
 	char fb_black;
 	struct pinctrl         *gf_pinctrl;
@@ -144,7 +143,10 @@ struct gf_dev {
 	struct pinctrl_state   *gpio_state_disable;
 	signed enable_gpio;
 	int project_version;
+#if defined(CONFIG_FP_PROXIMITY_ENABLE)
+	struct notifier_block notifier;
 	int proximity_state; /* 0:far 1:near */
+#endif
 };
 int gf_pinctrl_init(struct gf_dev* gf_dev);
 int gf_parse_dts(struct gf_dev* gf_dev);
