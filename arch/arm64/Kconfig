@@ -925,11 +925,12 @@ config SETEND_EMULATION
 	  endian - is hotplugged in after this feature has been enabled, there could
 	  be unexpected results in the applications.
 
-	  If unsure, say Y
+	  If 	default y unsure, say Y
 endif
 
 config ARM64_SW_TTBR0_PAN
 	bool "Emulate Privileged Access Never using TTBR0_EL1 switching"
+	default y
 	help
 	  Enabling this option prevents the kernel from accessing
 	  user-space memory directly by pointing TTBR0_EL1 to a reserved
