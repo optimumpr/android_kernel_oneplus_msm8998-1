@@ -1894,6 +1894,22 @@ config SLOB
 
 endchoice
 
+config SLAB_HARDENED
+	default y
+	depends on SLUB
+	bool "Hardened SLAB infrastructure"
+	help
+          Make minor performance sacrifices to harden the kernel slab
+          allocator.
+
+config SLAB_SANITIZE
+	bool "Sanitize SLAB allocations"
+	depends on SLUB
+	default y
+	help
+	  Zero fill slab allocations on free, reducing the lifetime of
+	  sensitive data and helping to mitigate use-after-free bugs.
+	  
 config SLUB_CPU_PARTIAL
 	default y
 	depends on SLUB && SMP
