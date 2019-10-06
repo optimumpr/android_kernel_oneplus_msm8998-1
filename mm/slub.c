@@ -126,7 +126,7 @@ static inline int kmem_cache_debug(struct kmem_cache *s)
 
 static inline bool has_sanitize(struct kmem_cache *s)
 {
-	return IS_ENABLED(CONFIG_SLAB_SANITIZE) && !(s->flags & (SLAB_TYPESAFE_BY_RCU | SLAB_POISON));
+	return IS_ENABLED(CONFIG_SLAB_SANITIZE) && !(s->flags & (SLAB_DESTROY_BY_RCU | SLAB_POISON));
 }
 
 static inline void *fixup_red_left(struct kmem_cache *s, void *p)
