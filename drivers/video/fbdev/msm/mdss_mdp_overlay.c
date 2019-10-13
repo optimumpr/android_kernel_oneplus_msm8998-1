@@ -3307,12 +3307,14 @@ int mdss_mdp_overlay_vsync_ctrl(struct msm_fb_data_type *mfd, int en)
 		goto end;
 	}
 
+ 	mdp5_data->vsync_en = en;
+
 	if (!ctl->panel_data->panel_info.cont_splash_enabled
 		&& (!mdss_mdp_ctl_is_power_on(ctl) ||
 		mdss_panel_is_power_on_ulp(ctl->power_state))) {
 		pr_debug("fb%d vsync pending first update en=%d, ctl power state:%d\n",
 				mfd->index, en, ctl->power_state);
-		rc = -EPERM;
+ 		rc = 0;
 		goto end;
 	}
 
@@ -5759,6 +5761,13 @@ static int mdss_mdp_overlay_on(struct msm_fb_data_type *mfd)
 	}
 
 panel_on:
+	if (mdp5_data->vsync_en) {
+		pr_info("reenabling vsync for fb%d\n", mfd->index);
+		mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_ON);
+		rc = ctl->ops.add_vsync_handler(ctl, &ctl->vsync_handler);
+		mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_OFF);
+	}
+
 	if (IS_ERR_VALUE(rc)) {
 		pr_err("Failed to turn on fb%d\n", mfd->index);
 		mdss_mdp_overlay_off(mfd);
@@ -6599,6 +6608,7 @@ int mdss_mdp_overlay_init(struct msm_fb_data_type *mfd)
 	pr_debug("vsync kobject_uevent(KOBJ_ADD)\n");
 
 	mdss_irq = mdss_intr_line();
+ 	mdp5_data->vsync_en = false;
 
 	/* Adding event timer only for primary panel */
 	if ((mfd->index == 0) && (mfd->panel_info->type != WRITEBACK_PANEL)) {
