@@ -4562,8 +4562,7 @@ static int xhci_update_timeout_for_endpoint(struct xhci_hcd *xhci,
 	 * the U1 or U2 exit latency was too high to allow
 	 * device-initiated LPM as well, just stop searching.
 	 */
-	if (alt_timeout == USB3_LPM_DISABLED ||
-			alt_timeout == USB3_LPM_DEVICE_INITIATED) {
+ 	if (alt_timeout == USB3_LPM_DISABLED) {
 		*timeout = alt_timeout;
 		return -E2BIG;
 	}
