@@ -30,6 +30,10 @@
  * as published by the Free Software Foundation.
  */
 
+#ifdef CONFIG_POCKET_JUDGE
+#include "fpc1020_tee_custom.h"
+#endif /* CONFIG_POCKET_JUDGE */
+
 #include <linux/clk.h>
 #include <linux/delay.h>
 #include <linux/gpio.h>
@@ -77,6 +81,11 @@ struct fpc1020_data {
 	struct mutex lock;
 	bool prepared;
 
+#ifdef CONFIG_POCKET_JUDGE
+	atomic_t irq_enable;
+	spinlock_t spinlock;
+#endif	/* CONFIG_POCKET_JUDGE */
+
 	struct pinctrl         *ts_pinctrl;
 	struct pinctrl_state   *gpio_state_active;
 	struct pinctrl_state   *gpio_state_suspend;
@@ -100,6 +109,10 @@ struct fpc1020_data {
 	spinlock_t irq_lock;
 	struct completion irq_sent;
 };
+
+#ifdef CONFIG_POCKET_JUDGE
+static struct fpc1020_data *fpc1020_g = NULL;
+#endif /* CONFIG_POCKET_JUDGE */
 
 static int fpc1020_request_named_gpio(struct fpc1020_data *fpc1020,
 		const char *label, int *gpio)
@@ -553,6 +566,28 @@ static irqreturn_t fpc1020_irq_handler(int irq, void *handle)
 	return IRQ_HANDLED;
 }
 
+#ifdef CONFIG_POCKET_JUDGE
+static void fpc1020_enable(struct fpc1020_data *fpc1020)
+{
+	if(0 == atomic_read(&fpc1020->irq_enable))
+	{
+		if(fpc1020->irq_gpio)
+			enable_irq(gpio_to_irq(fpc1020->irq_gpio));
+		atomic_set(&fpc1020->irq_enable,1);
+	}
+}
+
+static void fpc1020_disable(struct fpc1020_data *fpc1020)
+{
+	if(1 == atomic_read(&fpc1020->irq_enable))
+	{
+		if(fpc1020->irq_gpio)
+			disable_irq_nosync(gpio_to_irq(fpc1020->irq_gpio));
+		atomic_set(&fpc1020->irq_enable,0);
+	}
+}
+#endif /* CONFIG_POCKET_JUDGE */
+
 static int fpc1020_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
@@ -655,6 +690,9 @@ static int fpc1020_probe(struct platform_device *pdev)
 				gpio_to_irq(fpc1020->irq_gpio));
 		goto exit;
 	}
+#ifdef CONFIG_POCKET_JUDGE
+	atomic_set(&fpc1020->irq_enable,1);
+#endif /* CONFIG_POCKET_JUDGE */
 	dev_info(dev, "requested irq %d\n", gpio_to_irq(fpc1020->irq_gpio));
 
 	/* Request that the interrupt should not be wakeable */
@@ -704,11 +742,30 @@ static int fpc1020_probe(struct platform_device *pdev)
     *   Goodix   1            0             1
     *   
     */
+#ifdef CONFIG_POCKET_JUDGE
+	fpc1020_g = fpc1020;
+#endif /* CONFIG_POCKET_JUDGE */
 	dev_info(dev, "%s: ok\n", __func__);
 exit:
 	return rc;
 }
 
+#ifdef CONFIG_POCKET_JUDGE
+void fpc1020_enable_global(bool enabled)
+{
+	if (fpc1020_g == NULL)
+		return;
+
+	spin_lock(&fpc1020_g->spinlock);
+
+	if (enabled)
+		fpc1020_enable(fpc1020_g);
+	else
+		fpc1020_disable(fpc1020_g);
+
+	spin_unlock(&fpc1020_g->spinlock);
+}
+#endif /* CONFIG_POCKET_JUDGE */
 
 static struct of_device_id fpc1020_of_match[] = {
 	{ .compatible = "fpc,fpc1020", },
