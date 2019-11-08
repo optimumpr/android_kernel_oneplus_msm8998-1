@@ -227,7 +227,7 @@ int diag_md_write(int id, unsigned char *buf, int len, int ctx)
 	mutex_unlock(&driver->diagchar_mutex);
 
 	if (!found) {
-		diag_ws_on_copy_fail(DIAG_WS_MUX)
+		diag_ws_on_copy_fail(DIAG_WS_MUX);
 		return -EINVAL;
  	}
 
