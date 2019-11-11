@@ -440,6 +440,13 @@ THUMB(	orr	\reg , \reg , #PSR_T_BIT	)
 	.asciz "\string"
 	.size \name , . - \name
 	.endm
+	.macro	csdb
+#ifdef CONFIG_THUMB2_KERNEL
+	.inst.w	0xf3af8014
+#else
+	.inst	0xe320f014
+#endif
+	.endm
 
 	.macro check_uaccess, addr:req, size:req, limit:req, tmp:req, bad:req
 #ifndef CONFIG_CPU_USE_DOMAINS
