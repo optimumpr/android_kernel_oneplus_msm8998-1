@@ -641,7 +641,7 @@ static inline u32 __flow_hash_from_keys(struct flow_keys *keys, u32 keyval)
 	__flow_hash_consistentify(keys);
 
 	hash = siphash(flow_keys_hash_start(keys),
-		       flow_keys_hash_length(keys), keyval);;
+		       flow_keys_hash_length(keys), keyval);
 	if (!hash)
 		hash = 1;
 
