@@ -634,7 +634,8 @@ static inline void __flow_hash_consistentify(struct flow_keys *keys)
 	}
 }
 
-static inline u32 __flow_hash_from_keys(struct flow_keys *keys, u32 keyval)
+static inline u32 __flow_hash_from_keys(struct flow_keys *keys,
+					const siphash_key_t *keyval)
 {
 	u32 hash;
 
@@ -724,7 +725,7 @@ void __skb_get_hash(struct sk_buff *skb)
 
 	__flow_hash_secret_init();
 
-	__skb_set_sw_hash(skb, ___skb_get_hash(skb, &keys, hashrnd),
+	__skb_set_sw_hash(skb, ___skb_get_hash(skb, &keys, &hashrnd),
 			  flow_keys_have_l4(&keys));
 }
 EXPORT_SYMBOL(__skb_get_hash);
