@@ -21,7 +21,7 @@ obj-$(CONFIG_CRYPTO_POLY_HASH_ARM64_CE) += poly-hash-ce.o
 poly-hash-ce-y := poly-hash-ce-glue.o poly-hash-ce-core.o
 
 obj-$(CONFIG_CRYPTO_AES_ARM64_CE) += aes-ce-cipher.o
-aes-ce-cipher-y := aes-ce-core.o aes-ce-glue.o
+CFLAGS_aes-ce-cipher.o += -march=armv8-a+crypto
 
 obj-$(CONFIG_CRYPTO_AES_ARM64_CE_CCM) += aes-ce-ccm.o
 aes-ce-ccm-y := aes-ce-ccm-glue.o aes-ce-ccm-core.o
@@ -34,9 +34,6 @@ aes-neon-blk-y := aes-glue-neon.o aes-neon.o
 
 obj-$(CONFIG_CRYPTO_SPECK_NEON) += speck-neon.o
 speck-neon-y := speck-neon-core.o speck-neon-glue.o
-
-obj-$(CONFIG_CRYPTO_AES_ARM64_BS) += aes-neon-bs.o
-aes-neon-bs-y := aes-neonbs-core.o aes-neonbs-glue.o
 
 AFLAGS_aes-ce.o		:= -DINTERLEAVE=4
 AFLAGS_aes-neon.o	:= -DINTERLEAVE=4

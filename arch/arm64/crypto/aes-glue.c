@@ -14,7 +14,6 @@
 #include <crypto/internal/hash.h>
 #include <crypto/internal/simd.h>
 #include <crypto/internal/skcipher.h>
-#include <linux/module.h>
 #include <crypto/scatterwalk.h>
 #include <linux/module.h>
 #include <linux/cpufeature.h>
