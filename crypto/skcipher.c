@@ -449,15 +449,14 @@ static int skcipher_walk_skcipher(struct skcipher_walk *walk,
 
 	walk->total = req->cryptlen;
 	walk->nbytes = 0;
+	walk->iv = req->iv;
+	walk->oiv = req->iv;
 
 	if (unlikely(!walk->total))
 		return 0;
 
 	scatterwalk_start(&walk->in, req->src);
 	scatterwalk_start(&walk->out, req->dst);
-
-	walk->iv = req->iv;
-	walk->oiv = req->iv;
 
 	walk->flags &= ~SKCIPHER_WALK_SLEEP;
 	walk->flags |= req->base.flags & CRYPTO_TFM_REQ_MAY_SLEEP ?
@@ -510,6 +509,8 @@ static int skcipher_walk_aead_common(struct skcipher_walk *walk,
 	int err;
 
 	walk->nbytes = 0;
+	walk->iv = req->iv;
+	walk->oiv = req->iv;
 
 	if (unlikely(!walk->total))
 		return 0;
@@ -524,9 +525,6 @@ static int skcipher_walk_aead_common(struct skcipher_walk *walk,
 
 	scatterwalk_done(&walk->in, 0, walk->total);
 	scatterwalk_done(&walk->out, 0, walk->total);
-
-	walk->iv = req->iv;
-	walk->oiv = req->iv;
 
 	if (req->base.flags & CRYPTO_TFM_REQ_MAY_SLEEP)
 		walk->flags |= SKCIPHER_WALK_SLEEP;
@@ -772,6 +770,44 @@ static int crypto_init_skcipher_ops_ablkcipher(struct crypto_tfm *tfm)
 	return 0;
 }
 
+static int skcipher_setkey_unaligned(struct crypto_skcipher *tfm,
+				     const u8 *key, unsigned int keylen)
+{
+	unsigned long alignmask = crypto_skcipher_alignmask(tfm);
+	struct skcipher_alg *cipher = crypto_skcipher_alg(tfm);
+	u8 *buffer, *alignbuffer;
+	unsigned long absize;
+	int ret;
+
+	absize = keylen + alignmask;
+	buffer = kmalloc(absize, GFP_ATOMIC);
+	if (!buffer)
+		return -ENOMEM;
+
+	alignbuffer = (u8 *)ALIGN((unsigned long)buffer, alignmask + 1);
+	memcpy(alignbuffer, key, keylen);
+	ret = cipher->setkey(tfm, alignbuffer, keylen);
+	kzfree(buffer);
+	return ret;
+}
+
+static int skcipher_setkey(struct crypto_skcipher *tfm, const u8 *key,
+			   unsigned int keylen)
+{
+	struct skcipher_alg *cipher = crypto_skcipher_alg(tfm);
+	unsigned long alignmask = crypto_skcipher_alignmask(tfm);
+
+	if (keylen < cipher->min_keysize || keylen > cipher->max_keysize) {
+		crypto_skcipher_set_flags(tfm, CRYPTO_TFM_RES_BAD_KEY_LEN);
+		return -EINVAL;
+	}
+
+	if ((unsigned long)key & alignmask)
+		return skcipher_setkey_unaligned(tfm, key, keylen);
+
+	return cipher->setkey(tfm, key, keylen);
+}
+
 static void crypto_skcipher_exit_tfm(struct crypto_tfm *tfm)
 {
 	struct crypto_skcipher *skcipher = __crypto_skcipher_cast(tfm);
@@ -792,7 +828,7 @@ static int crypto_skcipher_init_tfm(struct crypto_tfm *tfm)
 	    tfm->__crt_alg->cra_type == &crypto_givcipher_type)
 		return crypto_init_skcipher_ops_ablkcipher(tfm);
 
-	skcipher->setkey = alg->setkey;
+ 	skcipher->setkey = skcipher_setkey;
 	skcipher->encrypt = alg->encrypt;
 	skcipher->decrypt = alg->decrypt;
 	skcipher->ivsize = alg->ivsize;
