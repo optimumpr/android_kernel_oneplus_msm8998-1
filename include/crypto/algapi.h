@@ -186,7 +186,7 @@ struct crypto_async_request *crypto_dequeue_request(struct crypto_queue *queue);
 int crypto_tfm_in_queue(struct crypto_queue *queue, struct crypto_tfm *tfm);
 
 void crypto_inc(u8 *a, unsigned int size);
-void __crypto_xor(u8 *dst, const u8 *src, unsigned int size);
+void __crypto_xor(u8 *dst, const u8 *src1, const u8 *src2, unsigned int size);
 
 static inline void crypto_xor(u8 *dst, const u8 *src, unsigned int size)
 {
@@ -201,7 +201,7 @@ static inline void crypto_xor(u8 *dst, const u8 *src, unsigned int size)
 			size -= sizeof(unsigned long);
 		}
 	} else {
-		__crypto_xor(dst, src, size);
+ 		__crypto_xor(dst, dst, src, size);
 	}
 }
 
