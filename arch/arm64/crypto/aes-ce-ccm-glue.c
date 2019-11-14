@@ -262,7 +262,7 @@ static struct aead_alg ccm_aes_alg = {
 		.cra_module		= THIS_MODULE,
 	},
 	.ivsize		= AES_BLOCK_SIZE,
-	.chunksize	= AES_BLOCK_SIZE,
+ 	.chunksize	= AES_BLOCK_SIZE,
 	.maxauthsize	= AES_BLOCK_SIZE,
 	.setkey		= ccm_setkey,
 	.setauthsize	= ccm_setauthsize,
