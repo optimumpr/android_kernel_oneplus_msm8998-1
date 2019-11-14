@@ -12,10 +12,10 @@
 
 #ifndef _CRYPTO_INTERNAL_SKCIPHER_H
 #define _CRYPTO_INTERNAL_SKCIPHER_H
-#include <linux/list.h>
+
 #include <crypto/algapi.h>
 #include <crypto/skcipher.h>
-
+#include <linux/list.h>
 #include <linux/types.h>
 
 struct aead_request;

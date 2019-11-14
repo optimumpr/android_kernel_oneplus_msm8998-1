@@ -398,6 +398,7 @@ static inline unsigned int crypto_skcipher_chunksize(
 	return crypto_skcipher_alg_chunksize(crypto_skcipher_alg(tfm));
 }
 
+
 /**
  * crypto_skcipher_walksize() - obtain walk size
  * @tfm: cipher handle

@@ -945,7 +945,6 @@ static int skcipher_prepare_alg(struct skcipher_alg *alg)
 
 	if (!alg->chunksize)
 		alg->chunksize = base->cra_blocksize;
-
 	if (!alg->walksize)
 		alg->walksize = alg->chunksize;
 
