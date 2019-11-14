@@ -145,6 +145,7 @@ struct aead_alg {
 
 	unsigned int ivsize;
 	unsigned int maxauthsize;
+ 	unsigned int chunksize;
 
 	struct crypto_alg base;
 };
@@ -152,7 +153,6 @@ struct aead_alg {
 struct crypto_aead {
 	unsigned int authsize;
 	unsigned int reqsize;
- 	unsigned int chunksize;
 
 	struct crypto_tfm base;
 };
