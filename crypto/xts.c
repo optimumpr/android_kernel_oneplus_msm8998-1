@@ -409,7 +409,7 @@ first:
 
 			/* C <- T xor CC */
 			for (i = 0; i < nblocks; i++)
-				be128_xor(dst + i, dst + i, &t_buf[i]);
+				le128_xor(dst + i, dst + i, &t_buf[i]);
 
 			src += nblocks;
 			dst += nblocks;
