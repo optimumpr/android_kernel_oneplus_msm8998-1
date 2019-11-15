@@ -172,9 +172,6 @@ static int ccm_encrypt(struct aead_request *req)
 	/* preserve the original iv for the final round */
 	memcpy(buf, req->iv, AES_BLOCK_SIZE);
 
-<<<<<<< HEAD
- 	err = skcipher_walk_aead_encrypt(&walk, req, true);
-=======
 	src = scatterwalk_ffwd(srcbuf, req->src, req->assoclen);
 	dst = src;
 	if (req->src != req->dst)
@@ -183,7 +180,6 @@ static int ccm_encrypt(struct aead_request *req)
 	blkcipher_walk_init(&walk, dst, src, len);
 	err = blkcipher_aead_walk_virt_block(&desc, &walk, aead,
 					     AES_BLOCK_SIZE);
->>>>>>> parent of db5de3073bf5... crypto: aes-ce-ccm - Use skcipher walk interface
 
 	while (walk.nbytes) {
 		u32 tail = walk.nbytes % AES_BLOCK_SIZE;
@@ -241,9 +237,6 @@ static int ccm_decrypt(struct aead_request *req)
 	/* preserve the original iv for the final round */
 	memcpy(buf, req->iv, AES_BLOCK_SIZE);
 
-<<<<<<< HEAD
- 	err = skcipher_walk_aead_decrypt(&walk, req, true);
-=======
 	src = scatterwalk_ffwd(srcbuf, req->src, req->assoclen);
 	dst = src;
 	if (req->src != req->dst)
@@ -252,7 +245,6 @@ static int ccm_decrypt(struct aead_request *req)
 	blkcipher_walk_init(&walk, dst, src, len);
 	err = blkcipher_aead_walk_virt_block(&desc, &walk, aead,
 					     AES_BLOCK_SIZE);
->>>>>>> parent of db5de3073bf5... crypto: aes-ce-ccm - Use skcipher walk interface
 
 	while (walk.nbytes) {
 		u32 tail = walk.nbytes % AES_BLOCK_SIZE;

@@ -226,8 +226,8 @@ static void crypto_gcm_init_crypt(struct aead_request *req,
 
 	dst = req->src == req->dst ? pctx->src : pctx->dst;
 
-	skcipher_request_set_tfm(skreq, ctx->ctr);
-	skcipher_request_set_crypt(skreq, pctx->src, dst,
+	ablkcipher_request_set_tfm(ablk_req, ctx->ctr);
+	ablkcipher_request_set_crypt(ablk_req, pctx->src, dst,
 				     cryptlen + sizeof(pctx->auth_tag),
 				     pctx->iv);
 }
