@@ -487,7 +487,6 @@ static inline unsigned int crypto_skcipher_default_keysize(
 	return tfm->keysize;
 }
 
-
 /**
  * crypto_skcipher_reqtfm() - obtain cipher handle from request
  * @req: skcipher_request out of which the cipher handle is to be obtained
