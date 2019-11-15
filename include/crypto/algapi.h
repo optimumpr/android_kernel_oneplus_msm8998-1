@@ -377,18 +377,13 @@ static inline struct crypto_alg *crypto_get_attr_alg(struct rtattr **tb,
 	return crypto_attr_alg(tb[1], type, mask);
 }
 
-static inline int crypto_requires_off(u32 type, u32 mask, u32 off)
-{
-	return (type ^ off) & mask & off;
-}
-
 /*
  * Returns CRYPTO_ALG_ASYNC if type/mask requires the use of sync algorithms.
  * Otherwise returns zero.
  */
 static inline int crypto_requires_sync(u32 type, u32 mask)
 {
- 	return crypto_requires_off(type, mask, CRYPTO_ALG_ASYNC);
+	return (type ^ CRYPTO_ALG_ASYNC) & mask & CRYPTO_ALG_ASYNC;
 }
 
 noinline unsigned long __crypto_memneq(const void *a, const void *b, size_t size);
