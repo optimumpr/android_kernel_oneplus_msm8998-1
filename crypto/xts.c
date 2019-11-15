@@ -463,7 +463,6 @@ static int create(struct crypto_template *tmpl, struct rtattr **tb)
 	struct xts_instance_ctx *ctx;
 	struct skcipher_alg *alg;
 	const char *cipher_name;
- 	u32 mask;
 	int err;
 
 	algt = crypto_get_attr_type(tb);
@@ -484,18 +483,18 @@ static int create(struct crypto_template *tmpl, struct rtattr **tb)
 	ctx = skcipher_instance_ctx(inst);
 
 	crypto_set_skcipher_spawn(&ctx->spawn, skcipher_crypto_instance(inst));
-	mask = crypto_requires_off(algt->type, algt->mask,
-				   CRYPTO_ALG_NEED_FALLBACK |
-				   CRYPTO_ALG_ASYNC);
-
-	err = crypto_grab_skcipher(&ctx->spawn, cipher_name, 0, mask);
+	err = crypto_grab_skcipher(&ctx->spawn, cipher_name, 0,
+				   crypto_requires_sync(algt->type,
+							algt->mask));
 	if (err == -ENOENT) {
 		err = -ENAMETOOLONG;
 		if (snprintf(ctx->name, CRYPTO_MAX_ALG_NAME, "ecb(%s)",
 			     cipher_name) >= CRYPTO_MAX_ALG_NAME)
 			goto err_free_inst;
 
- 		err = crypto_grab_skcipher(&ctx->spawn, ctx->name, 0, mask);
+		err = crypto_grab_skcipher(&ctx->spawn, ctx->name, 0,
+					   crypto_requires_sync(algt->type,
+								algt->mask));
 	}
 
 	if (err)
