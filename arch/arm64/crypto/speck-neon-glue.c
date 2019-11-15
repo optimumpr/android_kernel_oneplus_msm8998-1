@@ -80,7 +80,7 @@ __speck128_xts_crypt(struct blkcipher_desc *desc, struct scatterlist *dst,
 			le128_xor((le128 *)dst, (const le128 *)src, &tweak);
 			(*crypt_one)(&ctx->main_key, dst, dst);
 			le128_xor((le128 *)dst, (const le128 *)dst, &tweak);
-			gf128mul_x_ble((be128 *)&tweak, (const be128 *)&tweak);
+			gf128mul_x_ble((le128 *)&tweak, (const le128 *)&tweak);
 
 			dst += sizeof(tweak);
 			src += sizeof(tweak);
