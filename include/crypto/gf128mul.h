@@ -86,37 +86,35 @@
  * Both of the above formats are easy to implement on big-endian
  * machines.
  *
- * XTS and EME (the latter of which is patent encumbered) use the ble
- * format (bits are stored in big endian order and the bytes in little
- * endian). The above buffer represents X^7 in this case and the
- * primitive polynomial is b[0] = 0x87.
+ * EME (which is patent encumbered) uses the ble format (bits are stored
+ * in big endian order and the bytes in little endian). The above buffer
+ * represents X^7 in this case and the primitive polynomial is b[0] = 0x87.
  *
  * The common machine word-size is smaller than 128 bits, so to make
  * an efficient implementation we must split into machine word sizes.
- * This implementation uses 64-bit words for the moment. Machine
- * endianness comes into play. The lle format in relation to machine
- * endianness is discussed below by the original author of gf128mul Dr
- * Brian Gladman.
+ * This file uses one 32bit for the moment. Machine endianness comes into
+ * play. The lle format in relation to machine endianness is discussed
+ * below by the original author of gf128mul Dr Brian Gladman.
  *
  * Let's look at the bbe and ble format on a little endian machine.
  *
  * bbe on a little endian machine u32 x[4]:
  *
- *  MS            x[0]           LS  MS            x[1]		  LS
+ *  MS            x[0]           LS  MS            x[1]           LS
  *  ms   ls ms   ls ms   ls ms   ls  ms   ls ms   ls ms   ls ms   ls
  *  103..96 111.104 119.112 127.120  71...64 79...72 87...80 95...88
  *
- *  MS            x[2]           LS  MS            x[3]		  LS
+ *  MS            x[2]           LS  MS            x[3]           LS
  *  ms   ls ms   ls ms   ls ms   ls  ms   ls ms   ls ms   ls ms   ls
  *  39...32 47...40 55...48 63...56  07...00 15...08 23...16 31...24
  *
  * ble on a little endian machine
  *
- *  MS            x[0]           LS  MS            x[1]		  LS
+ *  MS            x[0]           LS  MS            x[1]           LS
  *  ms   ls ms   ls ms   ls ms   ls  ms   ls ms   ls ms   ls ms   ls
  *  31...24 23...16 15...08 07...00  63...56 55...48 47...40 39...32
  *
- *  MS            x[2]           LS  MS            x[3]		  LS
+ *  MS            x[2]           LS  MS            x[3]           LS
  *  ms   ls ms   ls ms   ls ms   ls  ms   ls ms   ls ms   ls ms   ls
  *  95...88 87...80 79...72 71...64  127.120 199.112 111.104 103..96
  *
@@ -130,36 +128,37 @@
  * machines this will automatically aligned to wordsize and on a 64-bit
  * machine also.
  */
-/*	Multiply a GF(2^128) field element by x. Field elements are
-    held in arrays of bytes in which field bits 8n..8n + 7 are held in
-    byte[n], with lower indexed bits placed in the more numerically
-    significant bit positions within bytes.
+/*  Multiply a GF128 field element by x. Field elements are held in arrays
+    of bytes in which field bits 8n..8n + 7 are held in byte[n], with lower
+    indexed bits placed in the more numerically significant bit positions
+    within bytes.
 
     On little endian machines the bit indexes translate into the bit
     positions within four 32-bit words in the following way
 
-    MS            x[0]           LS  MS            x[1]		  LS
+    MS            x[0]           LS  MS            x[1]           LS
     ms   ls ms   ls ms   ls ms   ls  ms   ls ms   ls ms   ls ms   ls
     24...31 16...23 08...15 00...07  56...63 48...55 40...47 32...39
 
-    MS            x[2]           LS  MS            x[3]		  LS
+    MS            x[2]           LS  MS            x[3]           LS
     ms   ls ms   ls ms   ls ms   ls  ms   ls ms   ls ms   ls ms   ls
     88...95 80...87 72...79 64...71  120.127 112.119 104.111 96..103
 
     On big endian machines the bit indexes translate into the bit
     positions within four 32-bit words in the following way
 
-    MS            x[0]           LS  MS            x[1]		  LS
+    MS            x[0]           LS  MS            x[1]           LS
     ms   ls ms   ls ms   ls ms   ls  ms   ls ms   ls ms   ls ms   ls
     00...07 08...15 16...23 24...31  32...39 40...47 48...55 56...63
 
-    MS            x[2]           LS  MS            x[3]		  LS
+    MS            x[2]           LS  MS            x[3]           LS
     ms   ls ms   ls ms   ls ms   ls  ms   ls ms   ls ms   ls ms   ls
     64...71 72...79 80...87 88...95  96..103 104.111 112.119 120.127
 */
 
-/*	A slow generic version of gf_mul, implemented for lle and bbe
- * 	It multiplies a and b and puts the result in a */
+/*  A slow generic version of gf_mul, implemented for lle, bbe, and ble.
+ *  It multiplies a and b and puts the result in a
+ */
 void gf128mul_lle(be128 *a, const be128 *b);
 
 void gf128mul_bbe(be128 *a, const be128 *b);
@@ -211,28 +210,28 @@ static inline void gf128mul_x_ble(le128 *r, const le128 *x)
 	u64 b = le64_to_cpu(x->b);
 
 	/* equivalent to gf128mul_table_be[b >> 63] (see crypto/gf128mul.c): */
-	u64 _tt = gf128mul_mask_from_bit(a, 63) & 0x87;
+ 	u64 _tt = gf128mul_mask_from_bit(a, 63) & 0x87;
 
 	r->a = cpu_to_le64((a << 1) | (b >> 63));
 	r->b = cpu_to_le64((b << 1) ^ _tt);
 }
 
 /* 4k table optimization */
-
 struct gf128mul_4k {
 	be128 t[256];
 };
 
 struct gf128mul_4k *gf128mul_init_4k_lle(const be128 *g);
 struct gf128mul_4k *gf128mul_init_4k_bbe(const be128 *g);
-void gf128mul_4k_lle(be128 *a, const struct gf128mul_4k *t);
-void gf128mul_4k_bbe(be128 *a, const struct gf128mul_4k *t);
+struct gf128mul_4k *gf128mul_init_4k_ble(const be128 *g);
+void gf128mul_4k_lle(be128 *a, struct gf128mul_4k *t);
+void gf128mul_4k_bbe(be128 *a, struct gf128mul_4k *t);
+void gf128mul_4k_ble(be128 *a, struct gf128mul_4k *t);
 
 static inline void gf128mul_free_4k(struct gf128mul_4k *t)
 {
 	kzfree(t);
 }
-
 
 /* 64k table optimization, implemented for bbe */
 
@@ -245,8 +244,9 @@ struct gf128mul_64k {
  * factor in the first argument, and the table in the second.
  * Afterwards, the result is stored in *a.
  */
+struct gf128mul_64k *gf128mul_init_64k_lle(const be128 *g);
 struct gf128mul_64k *gf128mul_init_64k_bbe(const be128 *g);
 void gf128mul_free_64k(struct gf128mul_64k *t);
-void gf128mul_64k_bbe(be128 *a, const struct gf128mul_64k *t);
+void gf128mul_64k_bbe(be128 *a, struct gf128mul_64k *t);
 
 #endif /* _CRYPTO_GF128MUL_H */
