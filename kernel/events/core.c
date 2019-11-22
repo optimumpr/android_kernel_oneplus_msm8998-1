@@ -743,7 +743,7 @@ perf_cgroup_set_timestamp(struct task_struct *task,
 {
 }
 
-static inline void
+void
 perf_cgroup_switch(struct task_struct *task, struct task_struct *next)
 {
 }
@@ -8951,6 +8951,12 @@ perf_event_create_kernel_counter(struct perf_event_attr *attr, int cpu,
 	struct perf_event_context *ctx;
 	struct perf_event *event;
 	int err;
+	/*
+	 * Grouping is not supported for kernel events, neither is 'AUX',
+	 * make sure the caller's intentions are adjusted.
+	 */
+	if (attr->aux_output)
+		return ERR_PTR(-EINVAL);
 
 	/*
 	 * Get the target context (task or percpu):
