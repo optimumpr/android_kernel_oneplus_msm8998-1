@@ -353,9 +353,6 @@ static void queue_pending_output_urbs(struct snd_usb_endpoint *ep)
 
 		/* call the data handler to fill in playback data */
 		prepare_outbound_urb(ep, ctx);
-		/* can be stopped during prepare callback */
-		if (unlikely(!test_bit(EP_FLAG_RUNNING, &ep->flags)))
-			goto exit_clear;
 
 		err = usb_submit_urb(ctx->urb, GFP_ATOMIC);
 		if (err < 0)
