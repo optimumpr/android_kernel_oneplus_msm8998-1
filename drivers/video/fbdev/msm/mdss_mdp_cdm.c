@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2019, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -137,11 +137,21 @@ static int mdss_mdp_cdm_csc_setup(struct mdss_mdp_cdm *cdm,
 
 	if ((data->csc_type == MDSS_MDP_CSC_RGB2YUV_601L) ||
 		(data->csc_type == MDSS_MDP_CSC_RGB2YUV_601FR) ||
-		(data->csc_type == MDSS_MDP_CSC_RGB2YUV_709L)) {
+		(data->csc_type == MDSS_MDP_CSC_RGB2YUV_709L) ||
+		(data->csc_type == MDSS_MDP_CSC_RGB2YUV_709FR)) {
 		op_mode |= BIT(2);  /* DST_DATA_FORMAT = YUV */
 		op_mode &= ~BIT(1); /* SRC_DATA_FORMAT = RGB */
 		op_mode |= BIT(0);  /* EN = 1 */
 		cdm->is_bypassed = false;
+	} else if ((cdm->out_intf == MDP_CDM_CDWN_OUTPUT_HDMI) &&
+			((data->csc_type == MDSS_MDP_CSC_RGB2RGB_L) ||
+			(data->csc_type == MDSS_MDP_CSC_RGB2RGB))) {
+		op_mode &= ~BIT(2); /* DST_DATA_FORMAT = RGB */
+		op_mode &= ~BIT(1); /* SRC_DATA_FORMAT = RGB */
+		op_mode |= BIT(0);  /* EN = 1 */
+		cdm->is_bypassed = false;
+		cdm->is_only_clamped = true;
+ 	} else {
 	} else {
 		op_mode = 0;
 		cdm->is_bypassed = true;
@@ -299,9 +309,11 @@ static int mdss_mdp_cdm_out_packer_setup(struct mdss_mdp_cdm *cdm,
 		}
 		opmode &= ~0x6;
 		opmode |= (fmt->chroma_sample << 1);
-		if (!cdm->is_bypassed)
+		if (!cdm->is_bypassed) {
 			cdm_enable |= BIT(19);
-
+			if (cdm->is_only_clamped)
+				opmode = 0;
+		}
 	} else {
 		/* Disable HDMI pacler for WB */
 		opmode = 0;
