@@ -151,7 +151,6 @@ static int mdss_mdp_cdm_csc_setup(struct mdss_mdp_cdm *cdm,
 		op_mode |= BIT(0);  /* EN = 1 */
 		cdm->is_bypassed = false;
 		cdm->is_only_clamped = true;
- 	} else {
 	} else {
 		op_mode = 0;
 		cdm->is_bypassed = true;
