@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2019, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -836,7 +836,6 @@ static int msm_pcm_playback_close(struct snd_pcm_substream *substream)
 	int ret = 0;
 
 	pr_debug("%s: cmd_pending 0x%lx\n", __func__, prtd->cmd_pending);
-
 	pdata = (struct msm_plat_data *)
 		dev_get_drvdata(soc_prtd->platform->dev);
 	if (!pdata) {
@@ -878,6 +877,7 @@ static int msm_pcm_playback_close(struct snd_pcm_substream *substream)
 	kfree(prtd);
 	runtime->private_data = NULL;
 	mutex_unlock(&pdata->lock);
+
 	return 0;
 }
 
@@ -995,6 +995,7 @@ static int msm_pcm_capture_close(struct snd_pcm_substream *substream)
 	kfree(prtd);
 	runtime->private_data = NULL;
 	mutex_unlock(&pdata->lock);
+
 	return 0;
 }
 
@@ -1388,6 +1389,7 @@ static int msm_pcm_volume_ctl_put(struct snd_kcontrol *kcontrol,
 				__func__);
 		return 0;
 	}
+
 	pdata = (struct msm_plat_data *)
 		dev_get_drvdata(soc_prtd->platform->dev);
 	if (!pdata) {
@@ -1589,13 +1591,15 @@ static int msm_pcm_chmap_ctl_put(struct snd_kcontrol *kcontrol,
 	}
 
 	if (!substream->runtime || !rtd)
-		return 0;
+ 		return 0;
 
 	mutex_lock(&pdata->lock);
+		return 0;
+
 	prtd = substream->runtime->private_data;
 	if (prtd) {
 		prtd->set_channel_map = true;
-			for (i = 0; i < PCM_FORMAT_MAX_NUM_CHANNEL; i++)
+			for (i = 0; i < PCM_FORMAT_MAX_NUM_CHANNEL_V2; i++)
 				prtd->channel_map[i] =
 				(char)(ucontrol->value.integer.value[i]);
 	}
@@ -1638,15 +1642,14 @@ static int msm_pcm_chmap_ctl_get(struct snd_kcontrol *kcontrol,
 	prtd = substream->runtime->private_data;
 
 	if (prtd && prtd->set_channel_map == true) {
-		for (i = 0; i < PCM_FORMAT_MAX_NUM_CHANNEL; i++)
+		for (i = 0; i < PCM_FORMAT_MAX_NUM_CHANNEL_V2; i++)
 			ucontrol->value.integer.value[i] =
 					(int)prtd->channel_map[i];
 	} else {
-		for (i = 0; i < PCM_FORMAT_MAX_NUM_CHANNEL; i++)
+		for (i = 0; i < PCM_FORMAT_MAX_NUM_CHANNEL_V2; i++)
 			ucontrol->value.integer.value[i] = 0;
 	}
 
-	mutex_unlock(&pdata->lock);
 	return 0;
 }
 
@@ -1661,7 +1664,7 @@ static int msm_pcm_add_chmap_controls(struct snd_soc_pcm_runtime *rtd)
 	pr_debug("%s, Channel map cntrl add\n", __func__);
 	ret = snd_pcm_add_chmap_ctls(pcm, SNDRV_PCM_STREAM_PLAYBACK,
 				     snd_pcm_std_chmaps,
-				     PCM_FORMAT_MAX_NUM_CHANNEL, 0,
+				     PCM_FORMAT_MAX_NUM_CHANNEL_V2, 0,
 				     &chmap_info);
 	if (ret < 0) {
 		pr_err("%s, channel map cntrl add failed\n", __func__);
@@ -2528,7 +2531,7 @@ static int msm_pcm_channel_mixer_output_map_info(struct snd_kcontrol *kcontrol,
 				       struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
-	uinfo->count = 32;
+	uinfo->count = PCM_FORMAT_MAX_NUM_CHANNEL_V2;
 	uinfo->value.integer.min = 1;
 	uinfo->value.integer.max = 64;
 	return 0;
@@ -2630,7 +2633,7 @@ static int msm_pcm_channel_mixer_input_map_info(struct snd_kcontrol *kcontrol,
 				       struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
-	uinfo->count = 32;
+	uinfo->count = PCM_FORMAT_MAX_NUM_CHANNEL_V2;
 	uinfo->value.integer.min = 1;
 	uinfo->value.integer.max = 64;
 	return 0;
@@ -2845,7 +2848,7 @@ static int msm_pcm_channel_mixer_weight_info(struct snd_kcontrol *kcontrol,
 				       struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
-	uinfo->count = 32;
+	uinfo->count = PCM_FORMAT_MAX_NUM_CHANNEL_V2;
 	uinfo->value.integer.min = 0;
 	uinfo->value.integer.max = 0x4000;
 	return 0;
