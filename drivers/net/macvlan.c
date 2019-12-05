@@ -325,11 +325,11 @@ static void macvlan_broadcast_enqueue(struct macvlan_port *port,
 		err = 0;
 	}
 	spin_unlock(&port->bc_queue.lock);
+	schedule_work(&port->bc_work);
 
 	if (err)
 		goto free_nskb;
 
-	schedule_work(&port->bc_work);
 	return;
 
 free_nskb:
